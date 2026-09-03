@@ -1,0 +1,68 @@
+Table Users {
+  UserID int [pk, increment]
+  FullName varchar(100) [not null]
+  Email varchar(150) [not null, unique]
+  PasswordHash varchar(255) [not null]
+  Role varchar(20) [not null, note: "Organiser or Participant"]
+  CreatedAt datetime [not null, default: `now()`]
+}
+
+Table Events {
+  EventID int [pk, increment]
+  OrganiserID int [not null]
+  EventName varchar(150) [not null]
+  EventType varchar(20) [not null, note: "Run, Walk or Cycle"]
+  EventDate date [not null]
+  Location varchar(150) [not null]
+  Description varchar(1000)
+  CreatedAt datetime [not null, default: `now()`]
+}
+
+Table Routes {
+  RouteID int [pk, increment]
+  EventID int [not null]
+  RouteName varchar(100) [not null]
+  DistanceKm decimal(6,2) [not null]
+  ElevationGainM int [default: 0]
+  MapUrl varchar(255)
+  WeatherNotes varchar(255)
+}
+
+Table Categories {
+  CategoryID int [pk, increment]
+  EventID int [not null]
+  CategoryName varchar(100) [not null]
+  MinAge int [default: 0]
+  MaxAge int
+  Gender varchar(10) [not null, default: 'Any']
+  EntryFee decimal(8,2) [not null, default: 0]
+}
+
+Table Enrolments {
+  EnrolmentID int [pk, increment]
+  ParticipantID int [not null]
+  CategoryID int [not null]
+  BibNumber varchar(10)
+  EnrolmentDate datetime [not null, default: `now()`]
+  Status varchar(20) [not null, default: 'Confirmed', note: "Pending, Confirmed or Cancelled"]
+
+  indexes {
+    (ParticipantID, CategoryID) [unique]
+  }
+}
+
+Table Results {
+  ResultID int [pk, increment]
+  EnrolmentID int [not null, unique]
+  FinishTime time
+  OverallPosition int
+  CategoryPosition int
+  Status varchar(20) [not null, default: 'Finished', note: "Finished, DNF or DQ"]
+}
+
+Ref: Events.OrganiserID > Users.UserID
+Ref: Routes.EventID > Events.EventID
+Ref: Categories.EventID > Events.EventID
+Ref: Enrolments.ParticipantID > Users.UserID
+Ref: Enrolments.CategoryID > Categories.CategoryID
+Ref: Results.EnrolmentID - Enrolments.EnrolmentID
